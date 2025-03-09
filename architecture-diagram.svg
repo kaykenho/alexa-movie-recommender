@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600">
+  <!-- Background -->
+  <rect width="1000" height="600" fill="#f9f9f9"/>
+  
+  <!-- Title -->
+  <text x="500" y="30" font-family="Arial" font-size="24" font-weight="bold" text-anchor="middle">Movie Recommender System Architecture</text>
+  
+  <!-- Data Layer -->
+  <rect x="50" y="80" width="200" height="120" rx="5" ry="5" fill="#e1f5fe" stroke="#01579b" stroke-width="2"/>
+  <text x="150" y="110" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">Movie Dataset</text>
+  <text x="150" y="140" font-family="Arial" font-size="12" text-anchor="middle">Large collection of movies</text>
+  <text x="150" y="160" font-family="Arial" font-size="12" text-anchor="middle">with metadata</text>
+  <text x="150" y="180" font-family="Arial" font-size="12" text-anchor="middle">(titles, descriptions, genres)</text>
+  
+  <!-- Model Layer -->
+  <rect x="50" y="240" width="200" height="180" rx="5" ry="5" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="150" y="270" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">ML Model</text>
+  <text x="150" y="300" font-family="Arial" font-size="12" text-anchor="middle">Feature Extraction</text>
+  <text x="150" y="320" font-family="Arial" font-size="12" text-anchor="middle">TF-IDF Vectorization</text>
+  <text x="150" y="340" font-family="Arial" font-size="12" text-anchor="middle">Cosine Similarity</text>
+  <text x="150" y="360" font-family="Arial" font-size="12" text-anchor="middle">Calculation</text>
+  <text x="150" y="390" font-family="Arial" font-size="12" text-anchor="middle">Serialized to .pkl files</text>
+  
+  <!-- API Layer -->
+  <rect x="350" y="240" width="200" height="180" rx="5" ry="5" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+  <text x="450" y="270" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">FastAPI Backend</text>
+  <text x="450" y="300" font-family="Arial" font-size="12" text-anchor="middle">REST API Endpoints</text>
+  <text x="450" y="320" font-family="Arial" font-size="12" text-anchor="middle">Loads .pkl Model Files</text>
+  <text x="450" y="340" font-family="Arial" font-size="12" text-anchor="middle">Processes Recommendation</text>
+  <text x="450" y="360" font-family="Arial" font-size="12" text-anchor="middle">Requests</text>
+  <text x="450" y="390" font-family="Arial" font-size="12" text-anchor="middle">Returns JSON Responses</text>
+  
+  <!-- Ngrok Layer -->
+  <rect x="350" y="80" width="200" height="120" rx="5" ry="5" fill="#f3e5f5" stroke="#4a148c" stroke-width="2"/>
+  <text x="450" y="110" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">Ngrok Tunnel</text>
+  <text x="450" y="140" font-family="Arial" font-size="12" text-anchor="middle">Secure HTTPS Endpoint</text>
+  <text x="450" y="160" font-family="Arial" font-size="12" text-anchor="middle">Exposes Local FastAPI</text>
+  <text x="450" y="180" font-family="Arial" font-size="12" text-anchor="middle">to Public Internet</text>
+  
+  <!-- Lambda Layer -->
+  <rect x="650" y="240" width="200" height="180" rx="5" ry="5" fill="#e0f7fa" stroke="#006064" stroke-width="2"/>
+  <text x="750" y="270" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">AWS Lambda Function</text>
+  <text x="750" y="300" font-family="Arial" font-size="12" text-anchor="middle">Processes Alexa Requests</text>
+  <text x="750" y="320" font-family="Arial" font-size="12" text-anchor="middle">Manages Conversation State</text>
+  <text x="750" y="340" font-family="Arial" font-size="12" text-anchor="middle">Handles Intents &amp; Slots</text>
+  <text x="750" y="360" font-family="Arial" font-size="12" text-anchor="middle">Calls Recommendation API</text>
+  <text x="750" y="390" font-family="Arial" font-size="12" text-anchor="middle">Returns Alexa Responses</text>
+  
+  <!-- Alexa Skill Layer -->
+  <rect x="650" y="80" width="200" height="120" rx="5" ry="5" fill="#fce4ec" stroke="#880e4f" stroke-width="2"/>
+  <text x="750" y="110" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">Alexa Skill</text>
+  <text x="750" y="140" font-family="Arial" font-size="12" text-anchor="middle">Voice User Interface</text>
+  <text x="750" y="160" font-family="Arial" font-size="12" text-anchor="middle">Intent Model</text>
+  <text x="750" y="180" font-family="Arial" font-size="12" text-anchor="middle">Movie Slot Type</text>
+  
+  <!-- User Layer -->
+  <rect x="900" y="80" width="80" height="120" rx="40" ry="60" fill="#e8eaf6" stroke="#1a237e" stroke-width="2"/>
+  <circle cx="940" cy="120" r="25" fill="#c5cae9" stroke="#1a237e" stroke-width="2"/>
+  <rect x="920" y="155" width="40" height="30" rx="5" ry="5" fill="#c5cae9" stroke="#1a237e" stroke-width="2"/>
+  <text x="940" y="230" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">User</text>
+  
+  <!-- Arrows -->
+  <!-- Data to Model -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+  
+  <!-- Data to Model arrow -->
+  <line x1="150" y1="200" x2="150" y2="240" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Model to API arrow -->
+  <path d="M 250 330 L 350 330" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="300" y="320" font-family="Arial" font-size="12" text-anchor="middle">Load</text>
+  
+  <!-- API to Ngrok arrow -->
+  <path d="M 450 240 L 450 200" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="470" y="220" font-family="Arial" font-size="12" text-anchor="middle">Expose</text>
+  
+  <!-- Ngrok to Lambda arrow -->
+  <path d="M 550 140 L 650 140 L 650 240" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="600" y="125" font-family="Arial" font-size="12" text-anchor="middle">HTTP(S)</text>
+  <text x="600" y="145" font-family="Arial" font-size="12" text-anchor="middle">Request</text>
+  
+  <!-- Lambda to Alexa arrow -->
+  <path d="M 750 240 L 750 200" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="780" y="220" font-family="Arial" font-size="12" text-anchor="middle">Response</text>
+  
+  <!-- Alexa to User arrow -->
+  <path d="M 850 140 L 900 140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="875" y="125" font-family="Arial" font-size="12" text-anchor="middle">Voice</text>
+  <text x="875" y="155" font-family="Arial" font-size="12" text-anchor="middle">Response</text>
+  
+  <!-- User to Alexa arrow -->
+  <path d="M 900 160 L 850 160" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="875" y="180" font-family="Arial" font-size="12" text-anchor="middle">Voice</text>
+  <text x="875" y="200" font-family="Arial" font-size="12" text-anchor="middle">Command</text>
+  
+  <!-- Legend -->
+  <rect x="50" y="500" width="900" height="80" rx="5" ry="5" fill="#ffffff" stroke="#333333" stroke-width="1"/>
+  <text x="500" y="525" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">Data Flow</text>
+  
+  <!-- Legend items -->
+  <rect x="100" y="540" width="20" height="20" fill="#e1f5fe" stroke="#01579b" stroke-width="2"/>
+  <text x="130" y="555" font-family="Arial" font-size="14" text-anchor="start">Data Layer</text>
+  
+  <rect x="250" y="540" width="20" height="20" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="280" y="555" font-family="Arial" font-size="14" text-anchor="start">Model Layer</text>
+  
+  <rect x="400" y="540" width="20" height="20" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+  <text x="430" y="555" font-family="Arial" font-size="14" text-anchor="start">API Layer</text>
+  
+  <rect x="550" y="540" width="20" height="20" fill="#f3e5f5" stroke="#4a148c" stroke-width="2"/>
+  <text x="580" y="555" font-family="Arial" font-size="14" text-anchor="start">Networking Layer</text>
+  
+  <rect x="700" y="540" width="20" height="20" fill="#e0f7fa" stroke="#006064" stroke-width="2"/>
+  <text x="730" y="555" font-family="Arial" font-size="14" text-anchor="start">Serverless Layer</text>
+  
+  <rect x="850" y="540" width="20" height="20" fill="#fce4ec" stroke="#880e4f" stroke-width="2"/>
+  <text x="880" y="555" font-family="Arial" font-size="14" text-anchor="start">Interface Layer</text>
+</svg>
