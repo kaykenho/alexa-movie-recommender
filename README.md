@@ -38,6 +38,8 @@ Key features:
 
 ## Project Architecture
 
+
+
 The system consists of five main components arranged in a pipeline architecture:
 
 1. **Machine Learning Model**: A TF-IDF vectorization model trained on movie metadata to extract features and calculate cosine similarity between movies.
@@ -46,7 +48,7 @@ The system consists of five main components arranged in a pipeline architecture:
 4. **AWS Lambda Function**: Processes Alexa requests, manages conversation state, and communicates with the API.
 5. **Alexa Skill**: The voice interface that users interact with.
 
-![Architecture Diagram](path-to-architecture-diagram.svg)
+![Architecture Diagram](architecture-diagram.svg)
 
 ### Data Flow
 
