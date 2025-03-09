@@ -1,17 +1,21 @@
-# Movie Recommender Alexa Skill
+# Movie Recommender for IoT Devices
 
-A complete voice-driven movie recommendation system built with Amazon Alexa and AWS Lambda that provides personalized movie recommendations based on user preferences.
+A complete voice-driven movie recommendation system built with Amazon Alexa, AWS Lambda, FastAPI, and machine learning that provides personalized movie recommendations based on user preferences. This architecture is designed to be adaptable for any IoT device with voice capabilities, not just Alexa devices, with future updates planned to expand compatibility and features.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Project Architecture](#project-architecture)
-- [Components](#components)
+- [Technical Components](#technical-components)
+  - [Machine Learning Model](#machine-learning-model)
   - [Movie Recommendation API](#movie-recommendation-api)
-  - [Alexa Skill](#alexa-skill)
+  - [Ngrok Tunnel](#ngrok-tunnel)
   - [AWS Lambda Function](#aws-lambda-function)
+  - [Alexa Skill](#alexa-skill)
 - [Setup and Deployment](#setup-and-deployment)
+  - [ML Model Training](#ml-model-training)
   - [API Setup](#api-setup)
+  - [Ngrok Configuration](#ngrok-configuration)
   - [Lambda Function Setup](#lambda-function-setup)
   - [Alexa Skill Setup](#alexa-skill-setup)
 - [Testing](#testing)
@@ -23,46 +27,129 @@ A complete voice-driven movie recommendation system built with Amazon Alexa and 
 
 ## Overview
 
-The Movie Recommender Alexa Skill allows users to get personalized movie recommendations through voice interaction. Users can tell Alexa a movie they like, and the system will suggest similar movies they might enjoy.
+The Movie Recommender Alexa Skill allows users to get personalized movie recommendations through voice interaction. Using machine learning techniques and natural language processing, the system analyzes movie content and provides recommendations based on similarity to movies the user already likes.
 
 Key features:
 - Voice-activated movie recommendations
-- Similarity-based recommendation algorithm
+- TF-IDF and cosine similarity-based recommendation algorithm
 - Multi-turn conversations (ability to ask for more recommendations)
 - Seamless integration between Alexa and a custom recommendation API
+- Machine learning powered content-based filtering
 
 ## Project Architecture
 
-The system consists of three main components:
+The system consists of five main components arranged in a pipeline architecture:
 
-1. **Movie Recommendation API**: A FastAPI-based service that provides movie recommendations based on cosine similarity.
-2. **AWS Lambda Function**: Processes Alexa requests and communicates with the API.
-3. **Alexa Skill**: The voice interface that users interact with.
+1. **Machine Learning Model**: A TF-IDF vectorization model trained on movie metadata to extract features and calculate cosine similarity between movies.
+2. **Movie Recommendation API**: A FastAPI-based service that loads the trained model and provides recommendation endpoints.
+3. **Ngrok Tunnel**: Exposes the local API to the internet through a secure HTTPS endpoint.
+4. **AWS Lambda Function**: Processes Alexa requests, manages conversation state, and communicates with the API.
+5. **Alexa Skill**: The voice interface that users interact with.
 
-```
-+----------------+       +------------------+       +----------------------+
-|                |       |                  |       |                      |
-|  Alexa Skill   | <---> |  Lambda Function | <---> | Recommendation API   |
-|                |       |                  |       |                      |
-+----------------+       +------------------+       +----------------------+
-```
+![Architecture Diagram](path-to-architecture-diagram.svg)
 
-## Components
+### Data Flow
+
+1. User speaks to an Alexa device requesting movie recommendations
+2. Alexa Skill captures the request and sends it to the AWS Lambda function
+3. Lambda function extracts the movie name and sends a request to the Recommendation API via Ngrok
+4. API loads the pre-trained ML model (TF-IDF and cosine similarity matrix) and finds similar movies
+5. API returns JSON response with recommendations
+6. Lambda processes the response and formats it for Alexa
+7. Alexa delivers the recommendation to the user via voice
+
+## Technical Components
+
+### Machine Learning Model
+
+The recommendation system uses a content-based filtering approach with TF-IDF (Term Frequency-Inverse Document Frequency) vectorization.
+
+**Key Components:**
+- **TF-IDF Vectorization**: Converts movie metadata (descriptions, genres, keywords) into numerical feature vectors
+- **Cosine Similarity**: Measures the similarity between movies based on their feature vectors
+- **Pre-computed Matrix**: Similarity scores are pre-computed and stored for efficient retrieval
+
+**Model Training Process:**
+1. Extract features from movie metadata (title, description, genres, keywords)
+2. Apply TF-IDF vectorization to convert text features to numerical vectors
+3. Calculate cosine similarity between all movie pairs
+4. Store the similarity matrix and movie titles in pickle files for fast loading
+
+**Files:**
+- `model/cosine_sim.pkl`: Pre-computed cosine similarity matrix
+- `model/movie_titles.pkl`: List of movie titles
 
 ### Movie Recommendation API
 
-A FastAPI-based API that provides movie recommendations using cosine similarity.
+A FastAPI-based API that loads the trained model and provides movie recommendations.
 
 **Key Features:**
-- Content-based recommendation algorithm using cosine similarity
-- Pre-trained model stored in pickle files
+- RESTful endpoints for movie recommendations
+- Dynamic loading of pre-trained models
 - Configurable number of recommendations
 - Error handling for unknown movies
 
-**Files:**
-- `app.py`: Main FastAPI application
-- `model/cosine_sim.pkl`: Pre-computed cosine similarity matrix
-- `model/movie_titles.pkl`: List of movie titles
+**Endpoints:**
+- `GET /recommend?movie_name=<movie_title>`: Returns top 5 similar movies
+
+**Implementation:**
+```python
+@app.get("/recommend")
+def recommend_movie(movie_name: str):
+    try:
+        # Find the movie index from movie_titles
+        if movie_name not in movie_titles:
+            return {"error": "Movie not found."}
+
+        movie_index = movie_titles.index(movie_name)
+
+        # Get the similarity scores for the given movie
+        similarity_scores = list(enumerate(cosine_sim[movie_index]))
+
+        # Sort the movies by similarity
+        sorted_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
+
+        # Return the top 5 recommended movies
+        recommended_movies = []
+        for i in range(1, 6):  # Skipping the first movie as it's the input movie itself
+            idx = sorted_scores[i][0]
+            recommended_movies.append(movie_titles[idx])
+
+        return {"recommended_movies": recommended_movies}
+
+    except Exception as e:
+        return {"error": str(e)}
+```
+
+### Ngrok Tunnel
+
+Ngrok creates a secure tunnel to expose the locally hosted FastAPI service to the internet.
+
+**Key Features:**
+- Provides a public HTTPS URL for the local API
+- Enables secure communication between AWS Lambda and the API
+- Includes request inspection and debugging tools
+
+**Configuration:**
+```bash
+ngrok http 8000  # Assuming FastAPI runs on port 8000
+```
+
+### AWS Lambda Function
+
+The Lambda function processes requests from the Alexa Skill and communicates with the recommendation API.
+
+**Key Features:**
+- Handles Alexa intent requests
+- Manages conversation state using session attributes
+- Communicates with the recommendation API
+- Implements error handling and fallbacks
+
+**Core Functions:**
+- Processing LaunchRequest
+- Handling RecommendMovieIntent with movie name slot
+- Managing follow-up requests for more recommendations
+- Formatting responses for Alexa
 
 ### Alexa Skill
 
@@ -72,7 +159,7 @@ The Alexa Skill provides the voice interface users interact with.
 - Custom invocation name: "movie recommender"
 - Natural language interaction
 - Multi-turn conversation support
-- Session persistence for ongoing recommendations
+- Slot for capturing movie names
 
 **Interaction Model:**
 - Invocation: "Alexa, open movie recommender"
@@ -81,31 +168,77 @@ The Alexa Skill provides the voice interface users interact with.
   - "Recommend me something like Inception"
   - "More recommendations"
 
-### AWS Lambda Function
-
-The Lambda function processes requests from the Alexa Skill and communicates with the recommendation API.
-
-**Key Features:**
-- Handles different Alexa intent types
-- Manages conversation state
-- Communicates with the recommendation API
-- Implements error handling and fallbacks
-
-**Files:**
-- `lambda_function.py`: Main Lambda handler
-
 ## Setup and Deployment
+
+### ML Model Training
+
+1. Prepare your movie dataset with metadata (titles, descriptions, genres)
+2. Install required libraries:
+   ```
+   pip install scikit-learn pandas numpy joblib
+   ```
+3. Create and run the training script:
+   ```python
+   import pandas as pd
+   from sklearn.feature_extraction.text import TfidfVectorizer
+   from sklearn.metrics.pairwise import cosine_similarity
+   import joblib
+
+   # Load your movie data
+   movies = pd.read_csv('movies_metadata.csv')
+   
+   # Prepare text data for TF-IDF (combine relevant features)
+   movies['content'] = movies['overview'] + ' ' + movies['genres']
+   
+   # Create TF-IDF vectors
+   tfidf = TfidfVectorizer(stop_words='english')
+   tfidf_matrix = tfidf.fit_transform(movies['content'])
+   
+   # Calculate cosine similarity
+   cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+   
+   # Save the model and data
+   movie_titles = movies['title'].tolist()
+   joblib.dump(cosine_sim, 'model/cosine_sim.pkl')
+   joblib.dump(movie_titles, 'model/movie_titles.pkl')
+   ```
 
 ### API Setup
 
-1. Clone the repository
-2. Install dependencies:
+1. Install FastAPI and dependencies:
    ```
-   pip install fastapi uvicorn scikit-learn joblib
+   pip install fastapi uvicorn joblib
    ```
-3. Deploy the API:
-   - For development: `uvicorn app:app --reload`
-   - For production: Deploy to a service like Heroku, AWS Elastic Beanstalk, or any platform supporting HTTPS
+
+2. Create the FastAPI application:
+   ```python
+   from fastapi import FastAPI
+   import joblib
+
+   app = FastAPI()
+
+   # Load the pre-trained model and movie titles
+   cosine_sim = joblib.load('model/cosine_sim.pkl')
+   movie_titles = joblib.load('model/movie_titles.pkl')
+
+   @app.get("/recommend")
+   def recommend_movie(movie_name: str):
+       # Implementation as shown in the Technical Components section
+   ```
+
+3. Start the FastAPI server:
+   ```
+   uvicorn app:app --reload
+   ```
+
+### Ngrok Configuration
+
+1. Download and install ngrok from [https://ngrok.com/download](https://ngrok.com/download)
+2. Start ngrok to expose your FastAPI server:
+   ```
+   ngrok http 8000
+   ```
+3. Copy the HTTPS URL provided by ngrok (e.g., `https://a1b2c3d4.ngrok.io`)
 
 ### Lambda Function Setup
 
@@ -116,7 +249,7 @@ The Lambda function processes requests from the Alexa Skill and communicates wit
 
 2. Upload the Lambda code:
    - Copy the provided Lambda function code
-   - Replace `API_ENDPOINT` with your actual API URL
+   - Replace `API_ENDPOINT` with your ngrok URL + "/recommend"
    - If using mock data (for testing), ensure the mock section is uncommented
 
 3. Configure the Lambda trigger:
@@ -132,8 +265,8 @@ The Lambda function processes requests from the Alexa Skill and communicates wit
    - Host your own backend
 
 2. Set up the interaction model:
-   - Use the provided interaction model JSON
-   - Create necessary intents and slots
+   - Create the RecommendMovieIntent with a MovieName slot
+   - Add sample utterances
    - Build the model
 
 3. Configure the endpoint:
@@ -261,27 +394,62 @@ Common issues and solutions:
    - Ensure there are no syntax errors in the code
 
 2. **API connection issues**:
-   - Verify the API endpoint is publicly accessible via HTTPS
-   - Check API endpoint in Lambda function
+   - Verify ngrok is running and the URL is current (ngrok URLs expire)
+   - Check the API endpoint URL in Lambda function
    - Temporarily use mock data for testing
 
-3. **Alexa not understanding movie names**:
+3. **Model loading problems**:
+   - Ensure the path to pickle files is correct
+   - Verify pickle files were created with compatible versions of libraries
+   - Check permissions for reading the files
+
+4. **Alexa not understanding movie names**:
    - Enhance the interaction model with more sample utterances
    - Use AMAZON.Movie slot type to improve recognition
 
-4. **Session attribute issues**:
-   - Verify session attributes are properly set and maintained
-   - Check for typos in attribute names
+5. **Ngrok tunnel issues**:
+   - Restart ngrok if the tunnel expires
+   - Use a paid ngrok account for persistent URLs
+   - Consider deploying the API to a cloud service for production
 
 ## Future Enhancements
 
 Potential improvements to the system:
 
-1. **User Profiles**: Store user preferences between sessions using DynamoDB
-2. **Genre Filtering**: Allow users to specify genres they're interested in
-3. **Release Date Filters**: Add options for newer or classic films
-4. **Integration with Streaming Services**: Show where movies are available to watch
-5. **Rating Information**: Include critic or user ratings in recommendations
-6. **Voice Recognition Improvements**: Add custom slot types for better movie name recognition
-7. **Multimodal Support**: Add visual elements for devices with screens
-8. **Internationalization**: Support for additional languages and international film libraries
+1. **IoT Device Compatibility**:
+   - Adapt the voice interface for Google Home, Apple HomePod, and other smart speakers
+   - Create a modular interface layer that can connect to any voice-enabled IoT device
+   - Develop standalone applications for smart TVs and streaming devices
+   - Support for automotive systems and in-car entertainment
+
+2. **Production Deployment**:
+   - Deploy the API to a cloud service (AWS, Heroku, etc.) instead of using ngrok
+   - Use AWS API Gateway to manage API access
+   - Implement load balancing for handling high volumes of requests
+
+3. **Enhanced Model**:
+   - Include more features in the TF-IDF model (actors, directors, etc.)
+   - Experiment with other algorithms (Word2Vec, Doc2Vec)
+   - Implement hybrid recommendation (content + collaborative filtering)
+   - Add real-time model updates based on new movie releases
+
+4. **User Profiles**:
+   - Store user preferences between sessions using DynamoDB
+   - Build personalized recommendation models based on user history
+   - Enable multiple user profiles for shared devices
+   - Implement cross-device profile synchronization
+
+5. **Feature Expansion**:
+   - Genre Filtering: Allow users to specify genres they're interested in
+   - Release Date Filters: Add options for newer or classic films
+   - Integration with Streaming Services: Show where movies are available to watch
+   - Rating Information: Include critic or user ratings in recommendations
+   - Social Recommendations: "Movies your friends enjoyed"
+
+6. **Skill Enhancements**:
+   - Voice Recognition Improvements: Add custom slot types for better movie name recognition
+   - Multimodal Support: Add visual elements for devices with screens
+   - Internationalization: Support for additional languages and international film libraries
+   - Conversational Improvements: More natural dialogue flow with follow-up questions
+
+Note: This project is actively under development with regular updates planned. The modular architecture allows for easy expansion to other voice platforms and IoT devices beyond Alexa. Future versions will include improved ML models, extended device compatibility, and enhanced user experience features.
