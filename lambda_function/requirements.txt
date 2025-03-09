@@ -1,0 +1,4 @@
+requests
+ask-sdk-core
+numpy
+scikit-learn

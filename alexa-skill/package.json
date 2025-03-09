@@ -1,0 +1,10 @@
+{
+  "name": "movie-recommender",
+  "version": "1.0.0",
+  "description": "Alexa Skill for Movie Recommendations",
+  "main": "skill.js",
+  "dependencies": {
+    "ask-sdk-core": "^2.7.0",
+    "joblib": "^1.0.1"
+  }
+}
